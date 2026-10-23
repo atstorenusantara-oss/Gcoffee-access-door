@@ -33,7 +33,7 @@ bool firmwareAuthorized() {
 }
 String firmwarePanel() {
   return "<section><h2>Upload program / firmware</h2>"
-    "<p>Pilih firmware.bin hasil build untuk ESP32 ini. Data karyawan, PIN dan log tetap tersimpan jika layout partisi sama. "
+    "<p>Pilih firmware.bin hasil build untuk perangkat ini. Data karyawan, PIN dan log tetap tersimpan jika layout partisi sama. "
     "Pintu tidak melayani scan selama transfer. Jangan matikan daya; perangkat restart setelah berhasil.</p>"
     "<form id='fw-form'><label>Firmware aplikasi (.bin)</label><input id='fw-file' type='file' accept='.bin' required>"
     "<br><button id='fw-button'>Upload firmware</button></form><p id='fw-result' role='status'></p>"
@@ -43,7 +43,7 @@ String firmwarePanel() {
     "r=document.getElementById('fw-result'),p=document.getElementById('fw-progress');"
     "if(!f||!f.size||!f.name.toLowerCase().endsWith('.bin')){r.textContent='Pilih file .bin yang tidak kosong.';return;}"
     "if(f.size>1310720){r.textContent='Firmware melebihi kapasitas slot OTA (1.310.720 byte).';return;}"
-    "if(!confirm('Upload firmware dan restart ESP32?'))return;"
+    "if(!confirm('Upload firmware dan restart perangkat?'))return;"
     "b.disabled=true;p.hidden=false;p.value=0;r.textContent='Mengirim firmware...';"
     "let hash;try{r.textContent='Memeriksa checksum...';hash=await firmwareSha256(f);}"
     "catch(e){r.textContent='File tidak dapat dibaca.';b.disabled=false;return;}"
@@ -103,7 +103,7 @@ void receiveFirmware() {
       memcpy(&header, upload.buf, sizeof(header));
       memcpy(&appMagic, upload.buf + sizeof(header) + 8, sizeof(appMagic));
       if (header.magic != ESP_IMAGE_HEADER_MAGIC || header.chip_id != ESP_CHIP_ID_ESP32 || appMagic != ESP_APP_DESC_MAGIC_WORD) {
-        failFirmware(400, "File bukan firmware aplikasi ESP32 klasik."); return;
+        failFirmware(400, "File firmware tidak sesuai dengan perangkat ini."); return;
       }
     }
     if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) { failFirmware(500, Update.errorString()); return; }
@@ -134,7 +134,7 @@ void finishFirmware() {
     firmwareReceiving = false; firmwareComplete = false;
     firmwareReboot = true; firmwareRebootMs = millis();
     server.sendHeader("Connection", "close");
-    server.send(200, "text/plain; charset=utf-8", "Firmware berhasil disimpan. ESP32 akan restart.");
+    server.send(200, "text/plain; charset=utf-8", "Firmware berhasil disimpan. Perangkat akan restart.");
     return;
   }
   server.send(firmwareStatus, "text/plain; charset=utf-8", firmwareError);

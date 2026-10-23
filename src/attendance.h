@@ -102,7 +102,7 @@ String dateTime(uint32_t epoch, const char* format = "%Y-%m-%d %H:%M:%S") {
 }
 String clockStatus() {
   uint32_t now = currentEpoch();
-  return now ? "Jam ESP32: " + dateTime(now) + " WIB" : "Jam BELUM SINKRON. Sinkronkan dari HP setelah listrik mati / restart.";
+  return now ? "Jam perangkat: " + dateTime(now) + " WIB" : "Jam BELUM SINKRON. Sinkronkan dari HP setelah listrik mati / restart.";
 }
 String attendancePanel() {
   String body = "<section><h2>Waktu &amp; absensi</h2><p id='clock'>" + escapeHtml(clockStatus()) + "</p>";
