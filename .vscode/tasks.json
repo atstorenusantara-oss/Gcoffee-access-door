@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "RFID: Build",
+      "type": "process",
+      "command": "${env:USERPROFILE}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["run"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "RFID: Upload",
+      "type": "process",
+      "command": "${env:USERPROFILE}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["run", "--target", "upload"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "RFID: Serial Monitor",
+      "type": "process",
+      "command": "${env:USERPROFILE}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["device", "monitor"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}
