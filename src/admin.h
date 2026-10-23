@@ -128,6 +128,7 @@ int requestSlot() {
   return id.length() == 1 && id[0] >= '1' && id[0] <= '5' ? id[0] - '1' : -1;
 }
 #include "attendance.h"
+#include "firmware_update.h"
 void showHome() {
   noCache();
   if (!sessionValid()) {
@@ -141,6 +142,7 @@ void showHome() {
   String body = "<p class='notice' id='status'>" + escapeHtml(notice) + "</p>";
   if (!storageReady) body += "<p>NVS gagal. Perubahan data tidak dapat disimpan.</p>";
   body += attendancePanel();
+  body += firmwarePanel();
   body += "<section><h2>Kontrol pintu</h2>" + postForm("/open") + "<button>Buka pintu 3 detik</button></form>"
     "<p class='muted'>Relay GPIO4 dan LED GPIO15 aktif LOW.</p></section>";
   for (int i = 0; i < 5; ++i) {
@@ -177,7 +179,8 @@ void startAdmin() {
   Serial.print("Mode admin aktif. Buka http://"); Serial.println(WiFi.softAPIP());
 }
 void setupRoutes() {
-  const char* headers[] = {"Cookie"}; server.collectHeaders(headers, 1);
+  const char* headers[] = {"Cookie", "X-CSRF-Token", "X-Firmware-Size", "X-Firmware-SHA256"}; server.collectHeaders(headers, 4);
+  server.on("/firmware", HTTP_POST, finishFirmware, receiveFirmware);
   server.on("/", HTTP_GET, showHome);
   server.on("/login", HTTP_POST, [] {
     noCache();
@@ -256,6 +259,7 @@ void setupRoutes() {
   server.onNotFound([] { noCache(); server.send(404, "text/plain", "Halaman tidak ditemukan."); });
 }
 void handleValidCard(const String& card) {
+  if (firmwareReceiving || firmwareReboot) return;
   if (enrollSlot >= 0 && millis() - enrollStartMs >= ENROLL_MS) {
     cancelEnrollment(); notice = "Waktu pendaftaran habis.";
     return; // Scan yang tiba di batas waktu tidak membuka pintu.
@@ -290,6 +294,7 @@ void setupAdmin() {
   Serial.println("Tahan tombol GPIO23 selama 3 detik untuk WiFi admin.");
 }
 void pollAdmin() {
+  pollFirmware();
   static bool rawLast = HIGH, stable = HIGH, handled = false;
   static unsigned long changedMs = 0, pressedMs = 0;
   bool raw = digitalRead(BUTTON_PIN); unsigned long now = millis();

@@ -73,3 +73,29 @@ Pengujian perangkat berikut masih perlu dilakukan setelah upload:
     Uji sambil dashboard aktif: buzzer kembali HIGH tanpa menunggu request selesai.
 29. Scan berikutnya ketika beep masih aktif mengulang timer dengan durasi hasil
     scan terakhir; buzzer tidak tertinggal LOW.
+
+## Upload firmware lewat dashboard
+
+Pemeriksaan otomatis: `pio run` dan `node tests/firmware_hash.test.cjs`.
+Tes Node membandingkan SHA256 browser dengan Node crypto untuk vektor dikenal,
+data biner, batas padding, ukuran mendekati slot OTA dan firmware hasil build.
+Pengujian berikut memerlukan perangkat cadangan dan belum digantikan oleh build:
+
+30. Pasang firmware OTA lewat USB sekali; login lalu pastikan panel upload tampil.
+    POST /firmware tanpa sesi ditolak 401; cookie valid tetapi header
+    X-CSRF-Token salah/kosong ditolak 403 sebelum menulis flash.
+31. Pilih firmware.bin hasil build: progress berjalan, pesan berhasil muncul,
+    perangkat restart, AP mati. Aktifkan AP lagi, login dan sinkronkan jam.
+    Nama, kartu, PIN dan CSV aktivitas lama tetap ada. Ulangi OTA ke slot lainnya.
+32. Coba source, bootloader, merged binary, image chip lain, file kosong, file
+    lebih besar dari slot, header ukuran salah, dan checksum SHA256 salah.
+    Semua harus ditolak tanpa restart atau mengganti boot partition.
+33. Putus koneksi saat transfer dan coba request multipart berisi dua file.
+    Firmware lama tetap berjalan; setelah transfer dibatalkan/timeout bisa
+    mencoba upload lagi. Pada perangkat uji, padam saat menulis slot OTA lalu
+    boot ulang: firmware lama harus tetap dapat berjalan.
+34. Mulai upload saat relay/buzzer aktif: keduanya kembali HIGH, kartu tidak
+    membuka pintu selama transfer. Setelah gagal, akses kartu kembali bekerja.
+35. Unduh log sebelum dan sesudah OTA: data lama tetap sama. Jam meminta
+    sinkronisasi ulang. Firmware pengganti yang memiliki bug runtime mungkin
+    membutuhkan pemulihan USB; tidak ada rollback otomatis pada versi ini.

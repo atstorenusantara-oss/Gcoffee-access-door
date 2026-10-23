@@ -121,6 +121,39 @@ Upload biasa dengan partisi tetap mempertahankan NVS. Versi Arduino IDE di
 
 ## Upload dari folder ini
 
+### Upload lewat dashboard (OTA)
+
+1. **Pertama kali**, build lalu upload firmware versi OTA ini lewat USB dengan
+   `pio run --target upload`. Firmware lama belum memiliki endpoint upload ini.
+2. Untuk pembaruan berikutnya, jalankan `pio run`. Ambil file aplikasi
+   `.pio/build/esp32dev/firmware.bin` dan simpan di HP/laptop yang membuka dashboard.
+3. Tahan tombol admin 3 detik, sambungkan ke WiFi Gcoffee-Admin, buka
+   `http://192.168.4.1`, lalu login menggunakan PIN admin.
+4. Di bagian **Upload program / firmware**, pilih `firmware.bin`, tekan
+   **Upload firmware**, lalu konfirmasi. Tunggu pesan berhasil dan restart.
+5. Setelah restart, tahan tombol admin lagi, sambungkan WiFi, login kembali,
+   lalu sinkronkan jam dari HP/laptop.
+
+Upload menerima **binary aplikasi ESP32 klasik**, bukan `.cpp`, `.ino`, ZIP,
+`bootloader.bin`, `partitions.bin`, merged/full-flash image, atau image filesystem.
+Firmware pengganti harus tetap menyediakan fitur OTA agar bisa diperbarui lagi.
+Layout partisi default dipertahankan: dua slot aplikasi 1.310.720 byte per slot.
+NVS dan LittleFS tidak ditulis oleh fitur upload; gunakan firmware baru yang
+kompatibel dengan layout partisi dan format penyimpanan yang sama.
+
+Upload memerlukan cookie sesi dan header token CSRF. Browser menghitung SHA256
+file secara lokal; ESP32 membandingkannya sebelum mengaktifkan firmware baru.
+Checksum memeriksa keutuhan transfer, bukan tanda tangan penerbit firmware.
+Pilih file hasil build yang dipercaya. Transfer tidak memerlukan internet.
+Selama transfer, relay/LED dan buzzer dimatikan, pendaftaran kartu dibatalkan,
+dan scan kartu tidak dilayani. Jangan matikan daya saat update. File yang gagal,
+terpotong, terlalu besar, atau berbeda checksum tidak diaktifkan dan tidak
+memicu restart. Jika firmware baru valid tetapi memiliki bug saat berjalan,
+belum ada rollback otomatis; pemulihan dapat memerlukan upload lewat USB.
+
+Dasar implementasi: [OTA Web Update Espressif](https://docs.espressif.com/projects/arduino-esp32/en/latest/ota_web_update.html).
+Pemeriksaan checksum browser: `node tests/firmware_hash.test.cjs`.
+
 PlatformIO Core dan ekstensi PlatformIO IDE sudah terpasang pada komputer ini.
 Buka folder ini di VS Code, lalu gunakan tombol **Build**, **Upload**, dan
 **Serial Monitor** pada toolbar PlatformIO atau melalui Project Tasks.
@@ -198,5 +231,5 @@ menempelkan lagi. Lihat aturan scan ulang 10 detik untuk penghitungan rekap.
 ## Konfigurasi lokal sebelum build
 
 Salin `src/config.example.h` menjadi `src/config.h`, lalu isi password WiFi
-(minimal 8 karakter) dan PIN awal (6?12 angka). File `config.h` diabaikan Git.
+(minimal 8 karakter) dan PIN awal (6 sampai 12 angka). File `config.h` diabaikan Git.
 PIN yang sudah tersimpan di NVS tetap berlaku sampai diubah melalui dashboard.
